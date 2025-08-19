@@ -7,7 +7,7 @@
 
 // секция данных игры  
 typedef struct {
-    float x, y, width, height, rad, dx, dy, speed, jump, maxJump;
+    float x, y, width, height, rad, dx, dy, speed, jump, gravite, maxJump, maxSpeed;
     HBITMAP hBitmap;//хэндл к спрайту шарика 
 } sprite;
 
@@ -32,6 +32,8 @@ HBITMAP hBack;// хэндл для фонового изображения
 //cекция кода
 float currentTime = timeGetTime();
 
+bool jumping = false;
+
 void InitGame()
 {
     //в этой секции загружаем спрайты с помощью функций gdi
@@ -40,17 +42,19 @@ void InitGame()
     ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    hBack = (HBITMAP)LoadImageA(NULL, "back3.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hBack = (HBITMAP)LoadImageA(NULL, "back.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
 
     hero.hBitmap = (HBITMAP)LoadImageA(NULL, "DrLivsi.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hero.width = 400;
     hero.height = 400;
-    hero.speed = 40;
-    hero.jump = 10;
-    hero.maxJump = 200;
+    hero.speed = 20;
+    hero.maxSpeed = 16;
+    hero.jump = 0;
+    hero.gravite = 15;
     hero.x = window.width / 2;
     hero.y = window.height / 2;
+    hero.maxJump = 500;
 
     racket.width = 300;
     racket.height = 50;
@@ -131,6 +135,7 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
             StretchBlt(hDC, x, y, x1, y1, hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY); // Рисуем изображение bitmap
         }
 
+
         SelectObject(hMemDC, hOldbm);// Восстанавливаем контекст памяти
     }
 
@@ -153,7 +158,7 @@ void ShowRacketAndBall()
 
     ShowBitmap(window.context, enemy.x - racket.width / 2, 0, racket.width, racket.height, enemy.hBitmap);//ракетка оппонента
     ShowBitmap(window.context, ball.x - ball.rad, ball.y - ball.rad, 2 * ball.rad, 2 * ball.rad, ball.hBitmap, true);// шарик
-    ShowBitmap(window.context, hero.x - 100, hero.y - hero.height/2, hero.width, hero.height, hero.hBitmap);
+    ShowBitmap(window.context, hero.x, hero.y, hero.width, hero.height, hero.hBitmap);
 }
 
 void LimitRacket()
@@ -263,27 +268,38 @@ void InitWindow()
 
 void MoveHero() {
 
-    hero.y += hero.jump;
+    hero.y += hero.gravite;
 
     if (hero.y + hero.height > window.height) {
-        hero.y  = window.height - hero.height / 2;
+        hero.y  = window.height - hero.height;
+    }
+
+    if (hero.y == 0) {
+        jumping = false;
     }
 
     if (hero.x + hero.width > window.width) {
-        hero.x = window.width - hero.width/1.35;
+        hero.x = window.width - hero.width;
+    }
+
+    if (hero.x < 0) {
+        hero.x = 0;
     }
 
     if (GetAsyncKeyState('D')) {
-
+        hero.x += hero.speed;
     }
 
-    if (GetAsyncKeyState('W')) {
-        if(hero.y < hero.y + hero.maxJump) {
-
-            hero.y -= hero.jump;
-        }
-        
+    if (GetAsyncKeyState('A')) {
+        hero.x -= hero.speed;
     }
+
+    if (GetAsyncKeyState('W') && !jumping) {
+        hero.jump = 30;
+        jumping = true;
+        hero.y += hero.gravite - hero.jump;
+    }
+
 
 }
 
