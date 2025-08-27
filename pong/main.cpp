@@ -29,7 +29,6 @@ struct {
 
 HBITMAP hBack;// хэндл для фонового изображения
 
-//cекция кода
 float currentTime = timeGetTime();
 
 bool jumping = false;
@@ -50,8 +49,8 @@ void InitGame()
     hero.height = 400;
     hero.speed = 20;
     hero.maxSpeed = 16;
-    hero.jump = 0;
-    hero.gravite = 15;
+    hero.jump = 10;
+    hero.gravite = 5;
     hero.x = window.width / 2;
     hero.y = window.height / 2;
     hero.maxJump = 500;
@@ -271,11 +270,11 @@ void MoveHero() {
     hero.y += hero.gravite;
 
     if (hero.y + hero.height > window.height) {
-        hero.y  = window.height - hero.height;
+        hero.y = window.height - hero.height;
     }
 
-    if (hero.y == 0) {
-        jumping = false;
+    if (hero.y < 0) {
+        hero.y = 0;
     }
 
     if (hero.x + hero.width > window.width) {
@@ -294,12 +293,17 @@ void MoveHero() {
         hero.x -= hero.speed;
     }
 
-    if (GetAsyncKeyState('W') && !jumping) {
-        hero.jump = 30;
+    if (hero.y == 0) {
         jumping = true;
-        hero.y += hero.gravite - hero.jump;
+    }
+    else if (hero.y == window.height - hero.height) {
+        jumping = false;
     }
 
+    if (GetAsyncKeyState('W') && !jumping) {
+        
+        hero.y -= hero.jump;
+    }
 
 }
 
@@ -308,7 +312,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_ LPWSTR    lpCmdLine,
     _In_ int       nCmdShow)
 {
-    
     InitWindow();//здесь инициализируем все что нужно для рисования в окне
     InitGame();//здесь инициализируем переменные игры
 
@@ -328,5 +331,4 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ProcessBall();//перемещаем шарик
         ProcessRoom();//обрабатываем отскоки от стен и каретки, попадание шарика в картетку
     }
-
 }
