@@ -4,7 +4,6 @@
 
 #include "windows.h"
 
-
 // секция данных игры  
 typedef struct {
     float x, y, width, height, rad, dx, dy, speed, jump, gravite, maxJump, maxSpeed;
@@ -15,6 +14,7 @@ sprite racket;//ракетка игрока
 sprite enemy;//ракетка противника
 sprite ball;//шарик
 sprite hero;
+sprite polka;
 
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
@@ -39,21 +39,26 @@ void InitGame()
     //пути относительные - файлы должны лежать рядом с .exe 
     //результат работы LoadImageA сохраняет в хэндлах битмапов, рисование спрайтов будет произовдиться с помощью этих хэндлов
     ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    //racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "back.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
 
     hero.hBitmap = (HBITMAP)LoadImageA(NULL, "DrLivsi.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    hero.width = 400;
-    hero.height = 400;
+    hero.width = 200;
+    hero.height = 200;
     hero.speed = 20;
     hero.maxSpeed = 16;
-    hero.jump = 10;
-    hero.gravite = 5;
+    hero.jump = 500;
+    hero.gravite = 30;
     hero.x = window.width / 2;
     hero.y = window.height / 2;
-    hero.maxJump = 500;
+
+    polka.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    polka.width = 400;
+    polka.height = 20;
+    polka.x = window.width / 4;
+    polka.y = window.height / 1.2;
 
     racket.width = 300;
     racket.height = 50;
@@ -134,7 +139,6 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
             StretchBlt(hDC, x, y, x1, y1, hMemDC, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY); // Рисуем изображение bitmap
         }
 
-
         SelectObject(hMemDC, hOldbm);// Восстанавливаем контекст памяти
     }
 
@@ -158,6 +162,8 @@ void ShowRacketAndBall()
     ShowBitmap(window.context, enemy.x - racket.width / 2, 0, racket.width, racket.height, enemy.hBitmap);//ракетка оппонента
     ShowBitmap(window.context, ball.x - ball.rad, ball.y - ball.rad, 2 * ball.rad, 2 * ball.rad, ball.hBitmap, true);// шарик
     ShowBitmap(window.context, hero.x, hero.y, hero.width, hero.height, hero.hBitmap);
+    ShowBitmap(window.context, polka.x, polka.y, polka.width, polka.height, polka.hBitmap);
+    
 }
 
 void LimitRacket()
@@ -265,6 +271,21 @@ void InitWindow()
 
 }
 
+void Collision() {
+
+    if (hero.x > polka.x - hero.width && hero.x < polka.x + polka.width && hero.y < polka.y + polka.height && hero.y > polka.y - hero.height && hero.x < polka.x) {
+        hero.x = polka.x - hero.width;
+    }
+
+    if (hero.x > polka.x - hero.width && hero.x < polka.x + polka.width && hero.y < polka.y + polka.height && hero.y > polka.y - hero.height && hero.x > polka.x) {
+        hero.x = polka.x + polka.width;
+    }
+
+    if (hero.x > polka.x - hero.width && hero.x < polka.x + polka.width && hero.y < polka.y + polka.height && hero.y > polka.y - hero.height && hero.y < polka.y) {
+        hero.y = polka.y - hero.height;
+    }
+}
+
 void MoveHero() {
 
     hero.y += hero.gravite;
@@ -301,10 +322,14 @@ void MoveHero() {
     }
 
     if (GetAsyncKeyState('W') && !jumping) {
-        
         hero.y -= hero.jump;
+        hero.jump *= 0.9;
     }
 
+    if (!GetAsyncKeyState('W')) {
+        jumping = true;
+        hero.jump = 100;
+    }
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -315,7 +340,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     InitWindow();//здесь инициализируем все что нужно для рисования в окне
     InitGame();//здесь инициализируем переменные игры
 
-    mciSendString(TEXT("play ..\\Debug\\music.mp3 repeat"), NULL, 0, NULL);
+    //mciSendString(TEXT("play ..\\Debug\\music.mp3 repeat"), NULL, 0, NULL);
     ShowCursor(NULL);
     
     while (!GetAsyncKeyState(VK_ESCAPE))
@@ -330,5 +355,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         LimitRacket();//проверяем, чтобы ракетка не убежала за экран
         ProcessBall();//перемещаем шарик
         ProcessRoom();//обрабатываем отскоки от стен и каретки, попадание шарика в картетку
+        Collision();
     }
 }
