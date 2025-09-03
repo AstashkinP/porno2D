@@ -56,9 +56,9 @@ void InitGame()
 
     polka.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     polka.width = 400;
-    polka.height = 20;
+    polka.height = 40;
     polka.x = window.width / 4;
-    polka.y = window.height / 1.2;
+    polka.y = window.height / 1.3;
 
     racket.width = 300;
     racket.height = 50;
@@ -273,17 +273,29 @@ void InitWindow()
 
 void Collision() {
 
-    if (hero.x > polka.x - hero.width && hero.x < polka.x + polka.width && hero.y < polka.y + polka.height && hero.y > polka.y - hero.height && hero.x < polka.x) {
-        hero.x = polka.x - hero.width;
+    if (polka.x < hero.x + hero.width && hero.x < polka.x + polka.width && polka.y < hero.y + hero.height && hero.y < polka.y + polka.height) {
+
+        float L = hero.x - (polka.x + polka.width);
+        float R = hero.x + hero.width - polka.x;
+        float U = hero.y - (polka.y + polka.height);
+        float D = hero.y + hero.height - polka.y;
+
+        float owerX;
+        float owerY;
+        owerX = min(L, R);
+        owerY = min(U, D);
+
+        if (owerX < owerY) {
+            if (L < R) {
+                hero.x = ;
+            }
+
+            if (R < L) {
+
+            }
+        }
     }
 
-    if (hero.x > polka.x - hero.width && hero.x < polka.x + polka.width && hero.y < polka.y + polka.height && hero.y > polka.y - hero.height && hero.x > polka.x) {
-        hero.x = polka.x + polka.width;
-    }
-
-    if (hero.x > polka.x - hero.width && hero.x < polka.x + polka.width && hero.y < polka.y + polka.height && hero.y > polka.y - hero.height && hero.y < polka.y) {
-        hero.y = polka.y - hero.height;
-    }
 }
 
 void MoveHero() {
@@ -323,12 +335,12 @@ void MoveHero() {
 
     if (GetAsyncKeyState('W') && !jumping) {
         hero.y -= hero.jump;
-        hero.jump *= 0.9;
+        hero.jump *= 0.95;
     }
 
     if (!GetAsyncKeyState('W')) {
         jumping = true;
-        hero.jump = 100;
+        hero.jump = 90;
     }
 }
 
