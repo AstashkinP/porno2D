@@ -35,13 +35,6 @@ struct {
     int x, y;
 } mouse;
 
-void GetCursorPos() {
-    POINT mousePos;
-    if (GetCursorPos(&mousePos)) {
-        mouse.x = mousePos.x;
-        mouse.y = mousePos.y;
-    }
-}
 
 HBITMAP hBack;// хэндл для фонового изображения
 
@@ -54,9 +47,9 @@ void InitGame()
     //в этой секции загружаем спрайты с помощью функций gdi
     //пути относительные - файлы должны лежать рядом с .exe 
     //результат работы LoadImageA сохраняет в хэндлах битмапов, рисование спрайтов будет произовдиться с помощью этих хэндлов
-    ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    //ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    //enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "back.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
 
@@ -317,6 +310,32 @@ void Collision() {
             if (D < U) {
                 hero.y = polka.y - hero.height;
             }
+        }
+    }
+}
+
+bool color = true;
+bool clic = true;
+void GetCursorPos() {
+    POINT mousePos;
+    if (GetCursorPos(&mousePos)) {
+        mouse.x = mousePos.x;
+        mouse.y = mousePos.y;
+    }
+
+    if (!GetAsyncKeyState(VK_LBUTTON)) {
+        clic = true;
+    }
+
+    if (mouse.x < polka.x + polka.width && mouse.x > polka.x && mouse.y < polka.y + polka.height && mouse.y > polka.y && GetAsyncKeyState(VK_LBUTTON) && clic == true) {
+        clic = false;
+        if (polka.hBitmap != (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE) && color == true) {
+            polka.hBitmap = (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+            color = false;
+        }
+        else if (polka.hBitmap != (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE) && color != true) {
+            polka.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+            color = true;
         }
     }
 }
