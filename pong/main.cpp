@@ -3,6 +3,8 @@
 //linker::input::additional dependensies Msimg32.lib; Winmm.lib
 
 #include "windows.h"
+#include <iostream>
+using namespace std;
 
 // секция данных игры  
 typedef struct {
@@ -16,6 +18,8 @@ sprite ball;//шарик
 sprite hero;
 sprite polka;
 
+
+
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
     bool action = false;//состояние - ожидание (игрок должен нажать пробел) или игра
@@ -26,6 +30,18 @@ struct {
     HDC device_context, context;// два контекста устройства (для буферизации)
     int width, height;//сюда сохраним размеры окна которое создаст программа
 } window;
+
+struct {
+    int x, y;
+} mouse;
+
+void GetCursorPos() {
+    POINT mousePos;
+    if (GetCursorPos(&mousePos)) {
+        mouse.x = mousePos.x;
+        mouse.y = mousePos.y;
+    }
+}
 
 HBITMAP hBack;// хэндл для фонового изображения
 
@@ -77,8 +93,6 @@ void InitGame()
 
     game.score = 0;
     game.balls = 9;
-
-   
 }
 
 void ProcessSound(const char* name)//проигрывание аудиофайла в формате .wav, файл должен лежать в той же папке где и программа
@@ -275,9 +289,9 @@ void Collision() {
 
     if (polka.x < hero.x + hero.width && hero.x < polka.x + polka.width && polka.y < hero.y + hero.height && hero.y < polka.y + polka.height) {
 
-        float L = hero.x - (polka.x + polka.width);
+        float L = polka.x + polka.width - hero.x;
         float R = hero.x + hero.width - polka.x;
-        float U = hero.y - (polka.y + polka.height);
+        float U = polka.y + polka.height - hero.y;
         float D = hero.y + hero.height - polka.y;
 
         float owerX;
@@ -287,15 +301,24 @@ void Collision() {
 
         if (owerX < owerY) {
             if (L < R) {
-                hero.x = ;
+                hero.x = polka.x + polka.width;
             }
 
             if (R < L) {
+                hero.x = polka.x - hero.width;
+            }
+        }
 
+        if (owerY < owerX) {
+            if (U < D) {
+                hero.y = polka.y + polka.height;
+            }
+
+            if (D < U) {
+                hero.y = polka.y - hero.height;
             }
         }
     }
-
 }
 
 void MoveHero() {
@@ -353,7 +376,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     InitGame();//здесь инициализируем переменные игры
 
     //mciSendString(TEXT("play ..\\Debug\\music.mp3 repeat"), NULL, 0, NULL);
-    ShowCursor(NULL);
+    ShowCursor(true);
     
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
@@ -368,5 +391,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ProcessBall();//перемещаем шарик
         ProcessRoom();//обрабатываем отскоки от стен и каретки, попадание шарика в картетку
         Collision();
+        GetCursorPos();
     }
 }
